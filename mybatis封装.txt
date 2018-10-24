@@ -1,0 +1,58 @@
+=================================================================================================
+
+mybatis封装dto
+
+
+//dto内声明静态类
+public class ProblemDto{
+
+
+    private Integer reportId;
+
+
+    private List<TroubleType> troubleTypeList;
+
+
+    public List<TroubleType> getTroubleTypeList() {
+        return troubleTypeList;
+    }
+
+    public void setTroubleTypeList(List<TroubleType> troubleTypeList) {
+        this.troubleTypeList = troubleTypeList;
+    }
+
+
+    public static class TroubleType {
+        private int code;
+
+        private String msg;
+
+        public int getCode() {
+            return code;
+        }
+
+        public void setCode(int code) {
+            this.code = code;
+        }
+
+        public String getMsg() {
+            return msg;
+        }
+
+        public void setMsg(String msg) {
+            this.msg = msg;
+        }
+    }
+
+}
+
+//service层调用声明的静态类
+List<ProblemDto.TroubleType> troubleTypeList = troubleRecordTypeRelService.listTroubleByRecordId(TResponseData.getReportId());
+
+//xml语句调用
+<select id="selectByRecordId" parameterType="integer" resultType="com.muma.pss.task.dto.ListUnsolvedReportResDataDto$TroubleType">
+    SELECT type.id code,type.msg msg
+    FROM trouble_record_type_rel
+</select>
+
+==================================================================================================

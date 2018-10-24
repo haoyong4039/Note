@@ -1,0 +1,63 @@
+Redis密码设置：
+redis 127.0.0.1:6379> config get requirepass //获取当前密码
+redis 127.0.0.1:6379> config set requirepass "admin"
+//设置当前密码,服务重新启动后又会置为默认，即无密码；不建议此种方式，可在配置文件中设置requirepass
+
+重新启动：redis 127.0.0.1:6379> redis-cli.exe -h 127.0.0.1 -p 6379 -a admin
+
+验证密码：redis 127.0.0.1:6379> AUTH "password"
+
+数据类型：
+
+支持的数据类型：string（字符串），hash（哈希），list（列表），set（集合）及zset(sorted set：有序集合)。
+
+String：一个key对应一个value（可包含图片以及序列化的对象） 最大限制为512M
+
+key的命令
+查询所有的key：keys *
+1	DEL key 该命令用于在 key 存在是删除 key。
+2	DUMP key 序列化给定 key ，并返回被序列化的值。
+3	EXISTS key 检查给定 key 是否存在。
+4	EXPIRE key seconds 为给定 key 设置过期时间。
+5	EXPIREAT key timestamp EXPIREAT 的作用和 EXPIRE 类似，都用于为 key 设置过期时间。 不同在于 EXPIREAT 命令接受的时间参数是 UNIX 时间戳(unix timestamp)。
+6	PEXPIRE key milliseconds 设置 key 的过期时间亿以毫秒计。
+7	PEXPIREAT key milliseconds-timestamp 设置 key 过期时间的时间戳(unix timestamp) 以毫秒计
+8	KEYS pattern 查找所有符合给定模式( pattern)的 key 。
+9	MOVE key db 将当前数据库的 key 移动到给定的数据库 db 当中。
+10	PERSIST key 移除 key 的过期时间，key 将持久保持。
+11	PTTL key 以毫秒为单位返回 key 的剩余的过期时间。
+12	TTL key 以秒为单位，返回给定 key 的剩余生存时间(TTL, time to live)。
+13	RANDOMKEY 从当前数据库中随机返回一个 key 。
+14	RENAME key newkey 修改 key 的名称
+15	RENAMENX key newkey 仅当 newkey 不存在时，将 key 改名为 newkey 。
+16	TYPE key 返回 key 所储存的值的类型。
+
+
+订阅：
+订阅频道：redis 127.0.0.1:6379> SUBSCRIBE redisChat
+另开一个客户端：redis 127.0.0.1:6379> PUBLISH redisChat "Redis is a great caching technique"
+
+事务：
+有三个阶段：开始事务 -> 命令入对 -> 执行事务
+先以 MULTI 开始一个事务， 然后将多个命令入队到事务中， 最后由 EXEC 命令触发事务， 一并执行事务中的所有命令：
+redis 127.0.0.1:6379> MULTI
+OK
+redis 127.0.0.1:6379> SADD tag "C++" "Programming" "Mastering Series"
+QUEUED
+redis 127.0.0.1:6379> SMEMBERS tag
+QUEUED
+redis 127.0.0.1:6379> EXEC
+1) (integer) 3
+2) 1) "Mastering Series"
+     2) "C++"
+     3) "Programming"
+
+数据备份：
+生成dump.rdb文件
+redis 127.0.0.1:6379> SAVE 
+OK
+
+如果需要恢复数据，只需将备份文件 (dump.rdb) 移动到 redis 安装目录并启动服务即可。
+redis 127.0.0.1:6379> CONFIG GET dir
+1) "dir"
+2) "/usr/local/redis/bin"

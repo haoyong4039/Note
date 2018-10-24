@@ -1,0 +1,147 @@
+========================================database=============================
+# 查看所有数据库
+show dbs
+
+# 创建数据库并进入
+use mytest（没有数据时，show dbs无法显示）
+
+# 删除数据库
+db.dropDatabase()
+
+========================================collection（相当于table）=============================
+capped	布尔	（可选）如果为 true，则创建固定集合。固定集合是指有着固定大小的集合，当达到最大值时，它会自动覆盖最早的文档。
+当该值为 true 时，必须指定 size 参数。
+
+autoIndexId	布尔	（可选）如为 true，自动在 _id 字段创建索引。默认为 false。
+
+size	数值	（可选）为固定集合指定一个最大值（以字节计）。
+
+如果 capped 为 true，也需要指定该字段。
+max	数值	（可选）指定固定集合中包含文档的最大数量。
+
+#查询所有集合
+show collections
+
+#创建一个集合
+db.createCollection("mycol"）
+db.createCollection("mycol", { capped : true, autoIndexId : true, size : 6142800, max : 10000 } )
+
+#删除一个集合
+db.mycol2.drop()
+
+=========================================插入============================
+#插入文档
+db.col.insert({title: 'MongoDB 教程', 
+    description: 'MongoDB 是一个 Nosql 数据库',
+    by: '菜鸟教程',
+    url: 'http://www.runoob.com',
+    tags: ['mongodb', 'database', 'NoSQL'],
+    likes: 100
+})
+
+#定义文档再插入
+document=({
+   title: 'MongoDB Overview', 
+   description: 'MongoDB is no sql database',
+   by_user: 'runoob.com',
+   url: 'http://www.runoob.com',
+   tags: ['mongodb', 'database', 'NoSQL'],
+   likes: 100
+});
+
+db.col.insert(document)
+
+=========================================更新============================
+#更新文档（条件，set内容，是否支持批量）
+db.col.update({'title':'MongoDB 教程'},{$set:{'title':'MongoDB'}})                         （只更新第一条查询到文档）
+db.col.update({'title':'MongoDB 教程'},{$set:{'title':'MongoDB'}},{multi:true})   （批量更新）
+ 
+#替换文档
+db.col.save({
+    "_id" : ObjectId("5b9220f71f28869602ec6f14"),
+    "title" : "MongoDB",
+    "description" : "MongoDB 是一个 Nosql 数据库",
+    "by" : "Runoob",
+    "url" : "http://www.runoob.com",
+    "tags" : [
+            "mongodb",
+            "NoSQL"
+    ],
+    "likes" : 110
+})
+=========================================删除============================
+
+#删除文档
+db.col.remove({'title':'MongoDB'},1)    （如果只删除一条，则指定1或true）
+
+
+=========================================查询============================
+#条件操作符
+操作	     格式	                                        范例	                                                            RDBMS中的类似语句
+等于	     {<key>:<value>}	                    db.col.find({"by":"菜鸟教程"}).pretty()	where by = '菜鸟教程'
+小于	     {<key>:{$lt:<value>}}	db.col.find({"likes":{$lt:50}}).pretty()	where likes < 50
+小于或等于     {<key>:{$lte:<value>}}	db.col.find({"likes":{$lte:50}}).pretty()	where likes <= 50
+大于	     {<key>:{$gt:<value>}}	db.col.find({"likes":{$gt:50}}).pretty()	where likes > 50
+大于或等于     {<key>:{$gte:<value>}}	db.col.find({"likes":{$gte:50}}).pretty()	where likes >= 50
+不等于	     {<key>:{$ne:<value>}}	db.col.find({"likes":{$ne:50}}).pretty()	where likes != 50
+
+#关系语句
+and查询
+db.col.find({key1:value1, key2:value2}).pretty()
+or查询
+db.col.find({$or: [{key1: value1}, {key2:value2}]}).pretty()
+and和or联合使用
+db.col.find({"likes": {$gt:50}, $or: [{"by": "菜鸟教程"},{"title": "MongoDB 教程"}]}).pretty()
+单字段多条件
+db.col.find({"create":{$gte:"2018-09-06 00:00:00",$lte:"2018-09-06 23:59:59"}})
+
+#模糊查询
+查询 title 包含"教"字的文档：
+db.col.find({title:/教/})
+查询 title 字段以"教"字开头的文档：
+db.col.find({title:/^教/})
+查询 titl e字段以"教"字结尾的文档：
+db.col.find({title:/教$/})
+
+#limit查询
+db.COLLECTION_NAME.find().limit(NUMBER)
+#skip查询
+用skip()方法来跳过指定数量的数据
+db.COLLECTION_NAME.find().limit(NUMBER).skip(NUMBER)
+
+#order查询
+使用 1 和 -1 来指定排序的方式，其中 1 为升序排列，而 -1 是用于降序排列
+db.COLLECTION_NAME.find().sort({KEY:1})
+
+#类型查询
+如果想获取 "col" 集合中 title 为 String 的数据，你可以使用以下命令：
+db.col.find({"title" : {$type : 2}})
+或
+db.col.find({"title" : {$type : 'string'}})
+
+=========================================聚合管道============================
+#聚合查询
+db.mycol.aggregate([{$group : {_id : "$by_user", num_tutorial : {$sum : 1}}}])
+类似于sql
+select by_user, count(*) from mycol group by by_user\\
+
+#管道
+$project：修改输入文档的结构。可以用来重命名、增加或删除域，也可以用于创建计算结果以及嵌套文档。
+$match：用于过滤数据，只输出符合条件的文档。$match使用MongoDB的标准查询操作。
+$limit：用来限制MongoDB聚合管道返回的文档数。
+$skip：在聚合管道中跳过指定数量的文档，并返回余下的文档。
+$unwind：将文档中的某一个数组类型字段拆分成多条，每条包含数组中的一个值。
+$group：将集合中的文档分组，可用于统计结果。
+$sort：将输入文档排序后输出。
+$geoNear：输出接近某一地理位置的有序文档。
+
+查询出指定字段，_id字段默认显示，设置为0过滤掉
+db.article.aggregate({ $project : { _id : 0 ,title : 1 , author : 1}});
+
+#查询出时间范围内的数据，并按照日期和状态进行分组求和
+db.t_device_online_log.aggregate( [
+                        { $match : {"time" : {$gte : "2018-09-04 00:00:00", $lte : "2018-09-10 23:59:59"} } },
+                        { $group :  { _id : {"time" : { $substr : [ "$time", 0, 10 ] }, "status" : "$status"}, count : { $sum : 1 } } },
+	    { $sort : {_id : -1} }
+] );
+
