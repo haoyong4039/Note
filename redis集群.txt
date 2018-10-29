@@ -1,0 +1,123 @@
+============================================redis安装=============================================
+
+1.下载解压安装 redis ，这里是官网下载的最新的3.2.5版本，依然通过wget下载。
+cd /usr/local/src
+wget http://download.redis.io/releases/redis-3.2.5.tar.gz
+tar xzf redis-3.2.5.tar.gz
+mv redis-3.2.5 /usr/local/redis
+
+2.进入目录，编译安装
+cd /usr/local/redis
+make
+make install
+安装完成，这时候会在/usr/local/bin/目录下看到redis-server、redis-cli等这个可执行脚本，进入看一下，如果没有，就要去解压目录复制进去了。
+cd /usr/local/bin/
+ll
+
+3.配置redis.conf
+cd ../redis
+vim redis.conf
+这里要修改两个地方，一个bind和daemonize就行。
+bind这里配置要注意，默认是只有一个127.0.0.1，这个时候只能自己连接，其他局域网内是连接不上的。所以，需要配置多个 IP ，这样就可以局域网内进行连接了。
+
+4.启动
+cd /usr/local/bin/
+redis-server /usr/local/redis/redis.conf
+netstat -anp | grep 6379
+
+============================================集群搭建================================================
+知识点
+redis集群至少需要6个节点（3主3从模式）
+
+1.创建文件夹（集群中 Redis 节点的端口号为 9001-9006 ，端口号即集群下各实例文件夹。数据存放在 端口号/data 文件夹中）
+
+mkdir /usr/local/redis-cluster
+cd /usr/local/redis-cluster
+mkdir -p 9001/data 9002/data 9003/data 9004/data 9005/data 9006/data
+
+2.复制执行脚本
+mkdir bin
+cd /usr/local/redis/src
+cp xxx xxx  /usr/local/redis-cluster/bin （复制该目录下颜色不同部分）
+
+3.复制一个新 Redis 实例
+cp -r /usr/local/redis/* /usr/local/redis-cluster/9001
+cd 9001
+vim redis.conf
+
+port 9001（每个节点的端口号）
+bind 192.168.119.131（绑定当前机器 IP）
+daemonize yes
+pidfile /var/run/redis_9001.pid（pid 9001和port要对应）
+dir /usr/local/redis-cluster/9001/data/（数据文件存放位置）
+appendonly yes
+cluster-enabled yes（启动集群模式）
+cluster-config-file nodes-9001.conf（9001和port要对应）
+cluster-node-timeout 15000
+
+4.修改 9002-9006 的 redis.conf 文件
+cd /usr/local/redis-cluster
+cp -r ./9001/* ./9002
+cp -r ./9001/* ./9003
+cp -r ./9001/* ./9004
+cp -r ./9001/* ./9005
+cp -r ./9001/* ./9006
+
+vim ./9002/redis.conf
+编辑9002-9006的redis.conf文件
+:%s/9001/9002/g
+点击节点文件夹全局修改
+
+5.启动 9001-9006 六个节点
+/usr/local/redis-cluster/bin/redis-server /usr/local/redis-cluster/9001/redis.conf 
+/usr/local/redis-cluster/bin/redis-server /usr/local/redis-cluster/9002/redis.conf 
+/usr/local/redis-cluster/bin/redis-server /usr/local/redis-cluster/9003/redis.conf 
+/usr/local/redis-cluster/bin/redis-server /usr/local/redis-cluster/9004/redis.conf 
+/usr/local/redis-cluster/bin/redis-server /usr/local/redis-cluster/9005/redis.conf 
+/usr/local/redis-cluster/bin/redis-server /usr/local/redis-cluster/9006/redis.conf
+
+6.随便找一个节点测试（会报错）
+/usr/local/redis-cluster/bin/redis-cli -h 127.0.0.1 -p 9001
+(error) CLUSTERDOWN Hash slot not served（不提供集群的散列槽）
+
+7.安装集群所需软件
+由于 Redis 集群需要使用 ruby 命令，所以我们需要安装 ruby 和相关接口。
+yum install ruby
+yum install rubygems
+gem install redis （安装过程出错）
+
+升级Ruby的版本
+curl -L get.rvm.io | bash -s stable
+gpg2 --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 （按照上一步错误提示信息复制进行）
+curl -L get.rvm.io | bash -s stable
+
+source环境，让rvm可用
+source /usr/local/rvm/scripts/rvm
+
+列出ruby版本列表
+rvm list known
+
+选择版本安装
+rvm install 2.4.1
+
+重新安装gem redis接口
+gem install redis
+
+8.创建集群
+/usr/local/redis-cluster/bin/redis-trib.rb create --replicas 1 127.0.0.1:9001 127.0.0.1:9002 127.0.0.1:9003 127.0.0.1:9004 127.0.0.1:9005 127.0.0.1:9006
+
+简单解释一下这个命令：调用 ruby 命令来进行创建集群，--replicas 1 表示主从复制比例为 1:1，即一个主节点对应一个从节点；然后，默认给我们分配好了每个主节点和对应从节点服务，以及 solt 的大小，因为在 Redis 集群中有且仅有 16383 个 solt ，默认情况会给我们平均分配，当然你可以指定，后续的增减节点也可以重新分配。
+
+M: 10222dee93f6a1700ede9f5424fccd6be0b2fb73 
+为主节点Id
+
+S: 9ce697e49f47fec47b3dc290042f3cc141ce5aeb 127.0.0.1:9004 replicates 10222dee93f6a1700ede9f5424fccd6be0b2fb73 
+从节点下对应主节点Id
+
+9.验证一下
+/usr/local/redis-cluster/bin/redis-cli -c -h 127.0.0.1 -p 9001
+cluster info
+cluster nodes
+
+设置一个name：
+你会发现，当我们 set name haoyong时，出现了 Redirected to slot 信息并自动连接到了9002节点。这也是集群的一个数据分配特性，这里不详细说了。
