@@ -1,0 +1,40 @@
+========================================git 更换push 提交地址=========================================
+1.git 删除远程地址
+git remote rm origin
+
+2.git 更换远程地址
+git remote add origin http://xxxxxx/xxxxxx/xxxxxx.git/
+
+3.把当前分支与远程分支进行关联(branchname要改成你的当前分支名称)
+git push --set-upstream origin branchname
+
+
+========================================git 分支编程=========================================
+1.git 克隆远程最新代码
+git clone http://xxxxxx/xxxxxx/xxxxxx.git/    （master上的代码）
+或者
+git clone -b branchname http://xxxxxx/xxxxxx/xxxxxx.git/    （分支branchname 上的代码）
+
+2.创建新分支并切换
+git branch branchname
+git checkout branchname
+
+3.将分支代码提交到远程新分支上（此时已处于新分支上操作）
+git push --set-upstream origin branchname
+
+4.每次修改完代码后
+（1）先将自己的代码提交到自己的分支上，确保合并过程中出现丢失
+git add .
+git commit -m "提交修改代码"
+git push（提交）
+（2）切到master进行代码合并
+git checkout master（切到master）
+git pull（拉取最新代码）
+git merge branchname（合并branchname分支上的代码，如果出现冲突，根据git提示解决冲突文件）
+git add .
+git commit -m "解决冲突代码"
+git push（提交）
+（3）切回branchname
+git checkout branchname
+git merge master（将自己的代码也更新成最新的）
+git push（提交）
