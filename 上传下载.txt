@@ -1,0 +1,126 @@
+===========================================上传==========================================
+    // 将上传文件保存至服务器指定目录下
+    private void savePic(InputStream inputStream, String fileName) throws CcpException
+    {
+        try
+        {
+            OutputStream os = null;
+            try
+            {
+                // 1K的数据缓冲
+                byte[] bs = new byte[1024];
+                // 读取到的数据长度
+                int len;
+                // 输出的文件流保存到本地文件
+                File tempFile = new File(PIC_SAVE_DIR);
+                if (!tempFile.exists())
+                {
+                    tempFile.mkdirs();
+                }
+                os = new FileOutputStream(tempFile.getPath() + File.separator + fileName);
+                // 开始读取
+                while ((len = inputStream.read(bs)) != -1)
+                {
+                    os.write(bs, 0, len);
+                }
+            }
+            catch (IOException e)
+            {
+                e.printStackTrace();
+            }
+            catch (Exception e)
+            {
+                e.printStackTrace();
+            }
+            finally
+            {
+                // 完毕，关闭所有链接
+                try
+                {
+                    os.close();
+                    inputStream.close();
+                }
+                catch (IOException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            throw new CcpException(CssCodeEnum.ERROR_CSS_INTERNAL,e);
+        }
+    }
+
+===========================================下载=========================================
+    public void down(String fileName, HttpServletResponse response) throws CcpException
+    {
+        try
+        {
+            //得到要下载的文件
+            File file = new File(SOURCE_SAVE_DIR + fileName);
+            //如果文件不存在
+            if (!file.exists())
+            {
+                throw new CcpException(CssEnum.ERROR_FILE_NOT_EXIST);
+            }
+            //设置响应头，控制浏览器下载该文件
+            response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8"));
+            //读取要下载的文件，保存到文件输入流
+            FileInputStream in = new FileInputStream(SOURCE_SAVE_DIR + fileName);
+            //创建输出流
+            OutputStream out = response.getOutputStream();
+            //创建缓冲区
+            byte buffer[] = new byte[1024];
+            int len = 0;
+            //循环将输入流中的内容读取到缓冲区当中
+            while ((len = in.read(buffer)) > 0)
+            {
+                //输出缓冲区的内容到浏览器，实现文件下载
+                out.write(buffer, 0, len);
+            }
+            //关闭文件输入流
+            in.close();
+            //关闭输出流
+            out.close();
+        }
+        catch (CcpException e)
+        {
+            throw e;
+        }
+        catch (IOException e)
+        {
+            throw new CcpException(CssCodeEnum.ERROR_CSS_INTERNAL, e);
+        }
+    }
+
+========================================curl操作==========================================
+    // 将服务器上的文件通过curl上传至文件服务器
+    private void upLoad(String fileName) throws CcpException
+    {
+        try
+        {
+            String[] cmd = new String[] {"curl", "-F", "filename=@"+PIC_SAVE_DIR+fileName+";type=application/octet-stream", "-F",             "token="+PIC_UPLOAD_TOKEN, "-F", "reName=false", PIC_UPLOAD_URL};
+
+            ProcessBuilder pb = new ProcessBuilder(cmd);
+
+            logger.info("cmd:{}", pb.command());
+
+            pb.redirectErrorStream(true);
+
+            Process p = pb.start();
+            BufferedReader br = new BufferedReader(new InputStreamReader(p.getInputStream()));
+
+            String line = null;
+            while ((line = br.readLine()) != null)
+            {
+                System.out.println("\t" + line);
+            }
+
+            br.close();
+        }
+        catch (Exception e)
+        {
+            throw new CcpException(CssCodeEnum.ERROR_CSS_INTERNAL,e);
+        }
+    }
