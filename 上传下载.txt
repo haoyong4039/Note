@@ -1,60 +1,40 @@
+=========================================文件名处理========================================
+String originalFilename = file.getOriginalFilename();
+String preName = originalFilename.substring(0,originalFilename.lastIndexOf("."));
+String suffixName = originalFilename.substring(originalFilename.lastIndexOf("."));
+
+Random random = new Random();
+Integer number = random.nextInt(900000) + 100000;//随机六位数
+String fileName = preName + "-" + System.currentTimeMillis() + String.valueOf(number) + suffixName;
+
 ===========================================上传==========================================
-    // 将上传文件保存至服务器指定目录下
-    private void savePic(InputStream inputStream, String fileName) throws CcpException
-    {
         try
         {
-            OutputStream os = null;
-            try
+            File dest = new File(path);
+            // 检测是否存在目录
+            if (!dest.getParentFile().exists())
             {
-                // 1K的数据缓冲
-                byte[] bs = new byte[1024];
-                // 读取到的数据长度
-                int len;
-                // 输出的文件流保存到本地文件
-                File tempFile = new File(PIC_SAVE_DIR);
-                if (!tempFile.exists())
-                {
-                    tempFile.mkdirs();
-                }
-                os = new FileOutputStream(tempFile.getPath() + File.separator + fileName);
-                // 开始读取
-                while ((len = inputStream.read(bs)) != -1)
-                {
-                    os.write(bs, 0, len);
-                }
+                dest.getParentFile().mkdirs();// 新建文件夹
             }
-            catch (IOException e)
+            file.transferTo(dest);// 文件写入
+
+            File fileCurrent = new File(path);
+            //判断是否上传成功
+            if (fileCurrent.exists())
             {
-                e.printStackTrace();
-            }
-            catch (Exception e)
-            {
-                e.printStackTrace();
-            }
-            finally
-            {
-                // 完毕，关闭所有链接
-                try
-                {
-                    os.close();
-                    inputStream.close();
-                }
-                catch (IOException e)
-                {
-                    e.printStackTrace();
-                }
+                return true;
             }
         }
-        catch (Exception e)
+        catch (IllegalStateException e)
         {
-            throw new CcpException(CssCodeEnum.ERROR_CSS_INTERNAL,e);
+            e.printStackTrace();
         }
-    }
+        catch (IOException e)
+        {
+            e.printStackTrace();
+        }
 
 ===========================================下载=========================================
-    public void down(String fileName, HttpServletResponse response) throws CcpException
-    {
         try
         {
             //得到要下载的文件
@@ -64,8 +44,10 @@
             {
                 throw new CcpException(CssEnum.ERROR_FILE_NOT_EXIST);
             }
-            //设置响应头，控制浏览器下载该文件
-            response.setHeader("content-disposition", "attachment;filename=" + URLEncoder.encode(fileName, "UTF-8"));
+            // 设置强制下载不打开
+            response.setContentType("application/force-download");
+            // 设置文件名
+            response.addHeader("Content-Disposition", "attachment;fileName=" + URLEncoder.encode(fileName, "UTF-8"));
             //读取要下载的文件，保存到文件输入流
             FileInputStream in = new FileInputStream(SOURCE_SAVE_DIR + fileName);
             //创建输出流
@@ -92,15 +74,11 @@
         {
             throw new CcpException(CssCodeEnum.ERROR_CSS_INTERNAL, e);
         }
-    }
 
 ========================================curl操作==========================================
-    // 将服务器上的文件通过curl上传至文件服务器
-    private void upLoad(String fileName) throws CcpException
-    {
         try
         {
-            String[] cmd = new String[] {"curl", "-F", "filename=@"+PIC_SAVE_DIR+fileName+";type=application/octet-stream", "-F",             "token="+PIC_UPLOAD_TOKEN, "-F", "reName=false", PIC_UPLOAD_URL};
+            String[] cmd = new String[] {"curl", "-F", "filename=@"+PIC_SAVE_DIR+fileName+";type=application/octet-stream", "-F", "token="+PIC_UPLOAD_TOKEN, "-F", "reName=false", PIC_UPLOAD_URL};
 
             ProcessBuilder pb = new ProcessBuilder(cmd);
 
@@ -123,4 +101,3 @@
         {
             throw new CcpException(CssCodeEnum.ERROR_CSS_INTERNAL,e);
         }
-    }
