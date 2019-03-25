@@ -123,7 +123,7 @@ db.col.find({"title" : {$type : 'string'}})
 #聚合查询
 db.mycol.aggregate([{$group : {_id : "$by_user", num_tutorial : {$sum : 1}}}])
 类似于sql
-select by_user, count(*) from mycol group by by_user\\
+select by_user, count(*) from mycol group by by_user
 
 #管道
 $project：修改输入文档的结构。可以用来重命名、增加或删除域，也可以用于创建计算结果以及嵌套文档。
