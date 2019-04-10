@@ -1,0 +1,13 @@
+安装地址：https://blog.csdn.net/weixin_39735923/article/details/79288578
+
+1.rabbitmq-plugins enable rabbitmq_management 出现错误   
+错误原因:Erlang OTP版本为21(10.0.1) RabbitMQ版本为3.7.6 有冲突
+解决方法:http://erlang.org/download/otp_win64_19.3.exe  下载19.3的otp
+
+2.ERROR: node with name "rabbit" already running on "localhost"
+1、找到路径：C:\Users\Administrator\AppData\Roaming\RabbitMQ；
+2、删除该路径下的文件（如果删不了，请先关掉RabbitMQ服务）；
+3、重新打开rabbitmq-server.bat，启动成功。
+
+3.启动后无法打开15762
+关闭rabbit，重新执行步骤1，再次启动
