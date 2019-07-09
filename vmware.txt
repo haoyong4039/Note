@@ -1,0 +1,5 @@
+1.下载VMware
+2.镜像下载https://mirrors.aliyun.com/centos，选择版本，进入isos目录下选择iso镜像
+3.搜索详情安装教程（https://jingyan.baidu.com/article/b7001fe1d1d8380e7382dd72.html）
+4.安装成功后首次连接查看ip地址，输入ifconfig查看ip地址，若没有此命令，需要安装（https://www.cnblogs.com/zuikeol/p/9647662.html）
+5.打开xhell连接，ip为ifconfig到的地址
