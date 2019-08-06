@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>笔记</title>
+		<style>
+			html,body{
+				height: 100%;
+				width: 100%;
+			}
+			*{
+				margin: 0;
+				padding: 0;
+				box-sizing: border-box;/*通过从已设定的宽度和高度分别减去边框和内边距才能得到内容的宽度和高度*/
+			}
+			</style>
+	</head>
+	<body>	
+			<!-- box-sizing样例 -->
+			<div style="width: 100px;height: 100px;border: 1px solid red;padding: 20px;">
+				
+			</div>
+			
+			<br />
+			
+			<!-- 1. display: table（除掉同行之后产生的间隙），vertical-align: middle（使同行元素居中显示，需要全部设置）-->
+			<div style="width: 100%;border: 1px solid red;display: table;">
+				<div style="width: 100px;height: 100px;border: 1px solid #0056B3;display: inline-block;vertical-align: middle;">1</div>
+				<div style="width: 50px;height: 50px;border: 1px solid #0056B3;display: inline-block;vertical-align: middle;">2</div>
+				<span>3</span>
+			</div>
+			
+			<br />
+			
+			<!-- 2. display: flex（弹性布局，可对子元素进行强制同行并上下居中和左右居中）-->
+			<div style="width: 100%;border: 1px solid red;display: flex;align-items: center;justify-content: center;">
+				<div style="width: 100px;height: 100px;border: 1px solid #0056B3;display: flex;align-items: center;justify-content: center;">
+					<div style="width: 50px;height: 50px;border: 1px solid #0056B3;">4</div>
+				</div>
+				<div style="width: 50px;height: 50px;border: 1px solid #0056B3;">2</div>
+				<span>3</span>
+			</div>
+			
+			<br />
+			
+			<!-- 3. 解决图片下方间隙问题 -->
+			<div style="border: 1px solid red;">
+				<img src="img/u37.png" style="vertical-align: middle"/>
+				<span>3</span>
+			</div>
+	</body>
+</html>
