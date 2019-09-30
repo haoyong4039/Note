@@ -1,0 +1,16 @@
+传入数据：json字符串 , text , xml , html
+传入方式：post/put
+获取方式：HttpCovert.convertStreamToMsg(request.getInputStream()) , 其中json字符串可使用@RequestBody封装
+
+传入数据：param参数
+传入方式：get/delete
+获取方式：@RequestParam
+
+传入数据：路径参数
+传入方式：get/delete
+获取方式：@PathVariable
+
+传入数据：json对象
+传入方式：get/delete
+获取方式：@ModelAttribute封装
+使用情况：1.使用get或delete方式   2.传入多个参数
